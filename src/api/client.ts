@@ -1,4 +1,5 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://lacefi-autofill-api.onrender.com/api'
+const _apiUrl = import.meta.env.VITE_API_URL || 'https://lacefi-autofill-api.onrender.com/api'
+const BASE = _apiUrl.replace(/\/api\/?$/, '') + '/api'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`)
