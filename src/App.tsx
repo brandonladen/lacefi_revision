@@ -56,7 +56,7 @@ export default function App() {
     : selected?.course_name ?? 'Past Papers'
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#f1f5f9' }}>
+    <div className="flex overflow-hidden" style={{ background: '#f1f5f9', height: '100dvh' }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -86,20 +86,21 @@ export default function App() {
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-white">
+        <div className="md:hidden flex items-center gap-3 px-3 border-b border-slate-200 bg-white" style={{ minHeight: '52px' }}>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded hover:bg-slate-100"
+            className="flex items-center justify-center shrink-0"
+            style={{ width: '44px', height: '44px' }}
           >
             <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="font-bold text-sm">
+          <span className="font-bold text-sm shrink-0">
             <span style={{ color: '#04AA6D' }}>Lacefi</span>
             <span className="text-slate-800">Autofill</span>
           </span>
-          <span className="text-xs text-slate-500 truncate">· {mobileTitle}</span>
+          <span className="text-sm text-slate-500 truncate">· {mobileTitle}</span>
         </div>
 
         <main className="flex-1 overflow-y-auto">

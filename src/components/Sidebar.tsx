@@ -169,7 +169,8 @@ export default function Sidebar({ courses, loading, selected, onSelect, score, a
                     <button
                       key={i}
                       onClick={() => onSelect(course)}
-                      className="w-full text-left flex items-center justify-between gap-2 py-2 pr-3 transition-colors"
+                      className="w-full text-left flex items-center justify-between gap-2 pr-3 transition-colors"
+                      style={{ ...{}, minHeight: '44px' }}
                       style={{
                         paddingLeft: '24px',
                         borderLeft: active ? '3px solid #04AA6D' : '3px solid transparent',

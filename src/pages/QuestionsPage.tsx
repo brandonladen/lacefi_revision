@@ -52,11 +52,11 @@ export default function QuestionsPage({ course, onBack, onAnswer }: Props) {
   return (
     <div className="h-full flex flex-col">
       {/* Course header */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
+      <div className="bg-white border-b border-slate-200 px-4 py-4 shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-xs mb-2 font-medium transition-colors"
-          style={{ color: '#04AA6D' }}
+          className="flex items-center gap-1 text-sm mb-2 font-medium transition-colors"
+          style={{ color: '#04AA6D', minHeight: '36px' }}
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -72,8 +72,8 @@ export default function QuestionsPage({ course, onBack, onAnswer }: Props) {
 
       {/* Score bar */}
       {answered > 0 && (
-        <div className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
-          <div className="flex items-center gap-6 mb-2">
+        <div className="bg-white border-b border-slate-200 px-4 py-3 shrink-0">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-xs font-semibold text-emerald-600">{correct} correct</span>
@@ -84,13 +84,13 @@ export default function QuestionsPage({ course, onBack, onAnswer }: Props) {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-slate-300" />
-              <span className="text-xs text-slate-400">{renderable.length - answered} remaining</span>
+              <span className="text-xs text-slate-400">{renderable.length - answered} left</span>
             </div>
-            <span className="ml-auto text-xs font-bold" style={{ color: pct >= 70 ? '#04AA6D' : pct >= 50 ? '#f59e0b' : '#ef4444' }}>
+            <span className="ml-auto text-sm font-bold" style={{ color: pct >= 70 ? '#04AA6D' : pct >= 50 ? '#f59e0b' : '#ef4444' }}>
               {pct}%
             </span>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -136,22 +136,24 @@ export default function QuestionsPage({ course, onBack, onAnswer }: Props) {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-8 pb-4">
+              <div className="flex items-center justify-between gap-3 mt-8 pb-6">
                 <button
                   onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0) }}
                   disabled={page === 1}
-                  className="flex items-center gap-1 px-4 py-2 text-sm border border-slate-300 bg-white text-slate-600 rounded disabled:opacity-40 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-2 px-5 text-sm font-medium border border-slate-300 bg-white text-slate-600 rounded disabled:opacity-40"
+                  style={{ minHeight: '44px' }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                   Previous
                 </button>
-                <span className="text-sm text-slate-500">Page {page} of {totalPages}</span>
+                <span className="text-sm text-slate-500">{page} / {totalPages}</span>
                 <button
                   onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0) }}
                   disabled={page === totalPages}
-                  className="flex items-center gap-1 px-4 py-2 text-sm border border-slate-300 bg-white text-slate-600 rounded disabled:opacity-40 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-2 px-5 text-sm font-medium border border-slate-300 bg-white text-slate-600 rounded disabled:opacity-40"
+                  style={{ minHeight: '44px' }}
                 >
                   Next
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

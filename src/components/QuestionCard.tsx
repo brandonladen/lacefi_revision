@@ -144,6 +144,7 @@ export default function QuestionCard({ question, index, onAnswer }: Props) {
                       borderColor: optBorder,
                       color: optText,
                       cursor: revealed ? 'default' : 'pointer',
+                      minHeight: '52px',
                     }}
                     onMouseEnter={e => {
                       if (!revealed) (e.currentTarget as HTMLElement).style.borderColor = '#04AA6D'
@@ -212,8 +213,8 @@ export default function QuestionCard({ question, index, onAnswer }: Props) {
             {!revealed && (
               <button
                 onClick={handleReveal}
-                className="px-4 py-2 text-sm font-medium text-white rounded transition-opacity hover:opacity-90"
-                style={{ background: '#04AA6D' }}
+                className="px-5 text-sm font-medium text-white rounded transition-opacity hover:opacity-90"
+                style={{ background: '#04AA6D', minHeight: '44px' }}
               >
                 Show Answer
               </button>
@@ -221,7 +222,8 @@ export default function QuestionCard({ question, index, onAnswer }: Props) {
             {revealed && (
               <button
                 onClick={handleReset}
-                className="px-4 py-2 text-sm font-medium border border-slate-300 text-slate-600 rounded hover:bg-slate-50 transition-colors"
+                className="px-5 text-sm font-medium border border-slate-300 text-slate-600 rounded hover:bg-slate-50 transition-colors"
+                style={{ minHeight: '44px' }}
               >
                 Try Again
               </button>

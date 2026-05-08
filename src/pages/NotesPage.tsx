@@ -76,32 +76,27 @@ function PdfViewer({ file, onClose }: ViewerProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
       {/* Viewer header */}
-      <div className="flex items-center gap-3 px-4 py-3 shrink-0 border-b" style={{ borderColor: '#1e293b' }}>
+      <div className="flex items-center gap-2 px-3 shrink-0 border-b" style={{ borderColor: '#1e293b', minHeight: '52px' }}>
         <button
           onClick={onClose}
-          className="flex items-center gap-1.5 text-sm font-medium transition-colors"
-          style={{ color: '#94a3b8' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'white')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+          className="flex items-center justify-center shrink-0"
+          style={{ color: '#94a3b8', minWidth: '44px', minHeight: '44px' }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back
         </button>
-        <span className="text-slate-600">|</span>
         <span className="text-sm font-semibold text-white truncate flex-1">{cleanName(file.name)}</span>
-        <span className="text-xs text-slate-500 shrink-0">{formatSize(file.size)}</span>
         <a
           href={file.download_url}
           download={file.name}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded"
-          style={{ background: '#04AA6D' }}
+          className="flex items-center justify-center gap-1.5 px-3 text-xs font-medium text-white rounded shrink-0"
+          style={{ background: '#04AA6D', minHeight: '40px' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          Download
+          Save
         </a>
       </div>
 
@@ -251,10 +246,10 @@ export default function NotesPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setViewing(file)}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-white rounded transition-opacity hover:opacity-90"
-                            style={{ background: '#04AA6D' }}
+                            className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-white rounded transition-opacity hover:opacity-90"
+                            style={{ background: '#04AA6D', minHeight: '44px' }}
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
@@ -263,9 +258,10 @@ export default function NotesPage() {
                           <a
                             href={file.download_url}
                             download={file.name}
-                            className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium border border-slate-300 text-slate-600 rounded hover:bg-slate-50 transition-colors"
+                            className="flex items-center justify-center gap-1.5 px-4 text-sm font-medium border border-slate-300 text-slate-600 rounded hover:bg-slate-50 transition-colors"
+                            style={{ minHeight: '44px' }}
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                             Save
