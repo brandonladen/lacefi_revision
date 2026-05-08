@@ -16,11 +16,11 @@ export interface ParsedQuestion {
 export function parseQuestion(raw: string): ParsedQuestion {
   const text = stripImageRefs((raw || '').trim())
 
-  // Try "Options:" separator
-  const optSepMatch = text.match(/^([\s\S]*?)(?:\n\s*Options:\s*\n)([\s\S]*)$/i)
   let stem = text
   let optionsBlock = ''
 
+  // Match "Options:" anywhere (inline or own line) followed by option lines
+  const optSepMatch = text.match(/^([\s\S]*?)\s*Options:\s*\n([\s\S]*)$/i)
   if (optSepMatch) {
     stem = optSepMatch[1].trim()
     optionsBlock = optSepMatch[2].trim()
@@ -31,6 +31,9 @@ export function parseQuestion(raw: string): ParsedQuestion {
       optionsBlock = text.substring(idx).trim()
     }
   }
+
+  // Strip any trailing "Options:" that didn't get caught (inline at end of stem)
+  stem = stem.replace(/\s*Options:\s*$/i, '').trim()
 
   const options: { letter: string; text: string }[] = []
   if (optionsBlock) {
@@ -50,6 +53,14 @@ export function parseQuestion(raw: string): ParsedQuestion {
   }
 
   return { stem, options }
+}
+
+// Format option text: "1. Blood 2. Semen 3. Kissing" → ["1. Blood", "2. Semen", "3. Kissing"]
+export function formatOptionLines(text: string): string[] {
+  // Split on numbered sub-items like "1. X 2. Y"
+  const parts = text.split(/(?=\b\d+\.\s)/).map(s => s.trim()).filter(Boolean)
+  // If we got multiple meaningful parts, return them; otherwise single line
+  return parts.length > 1 ? parts : [text]
 }
 
 export interface ParsedAnswer {

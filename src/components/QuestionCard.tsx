@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Question } from '../api/client'
-import { parseQuestion, parseAnswer, isRenderableQuestion } from '../utils/parseQuestion'
+import { parseQuestion, parseAnswer, isRenderableQuestion, formatOptionLines } from '../utils/parseQuestion'
 
 interface Props {
   question: Question
@@ -158,7 +158,11 @@ export default function QuestionCard({ question, index, onAnswer }: Props) {
                     >
                       {opt.letter}
                     </span>
-                    <span className="flex-1 leading-relaxed">{opt.text}</span>
+                    <span className="flex-1 leading-relaxed">
+                      {formatOptionLines(opt.text).map((line, li) => (
+                        <span key={li} className="block">{line}</span>
+                      ))}
+                    </span>
                     {revealed && isCorrect && (
                       <svg className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#04AA6D' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

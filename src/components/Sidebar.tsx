@@ -10,18 +10,56 @@ interface Props {
   score: SessionScore
 }
 
+function institutionName(domain: string | null): string {
+  if (!domain) return 'Other'
+  const known: Record<string, string> = {
+    'maseno.ac.ke':       'Maseno University',
+    'ueab.ac.ke':         'UEAB',
+    'uon.ac.ke':          'University of Nairobi',
+    'strathmore.edu':     'Strathmore University',
+    'ku.ac.ke':           'Kenyatta University',
+    'egerton.ac.ke':      'Egerton University',
+    'mku.ac.ke':          'Mount Kenya University',
+    'dkut.ac.ke':         'Dedan Kimathi University',
+  }
+  for (const [key, name] of Object.entries(known)) {
+    if (domain.includes(key)) return name
+  }
+  // Fallback: extract readable slug from domain
+  const match = domain.match(/([a-z0-9-]+)\.(ac\.ke|edu|com|org)/)
+  if (match) {
+    const slug = match[1].replace(/-/g, ' ')
+    return slug.charAt(0).toUpperCase() + slug.slice(1)
+  }
+  return domain
+}
+
 export default function Sidebar({ courses, loading, selected, onSelect, score }: Props) {
   const [search, setSearch] = useState('')
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   const filtered = courses.filter(c =>
-    c.course_name.toLowerCase().includes(search.toLowerCase())
+    c.course_name.toLowerCase().includes(search.toLowerCase()) ||
+    (c.domain || '').toLowerCase().includes(search.toLowerCase())
   )
+
+  // Group by institution
+  const groups: Record<string, Course[]> = {}
+  for (const c of filtered) {
+    const inst = institutionName(c.domain)
+    if (!groups[inst]) groups[inst] = []
+    groups[inst].push(c)
+  }
+  const sortedGroups = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
 
   const answered = score.correct + score.wrong
   const pct = answered > 0 ? Math.round((score.correct / answered) * 100) : 0
 
   const isActive = (c: Course) =>
     selected?.course_name === c.course_name && selected?.course_id === c.course_id
+
+  const toggleGroup = (name: string) =>
+    setCollapsed(prev => ({ ...prev, [name]: !prev[name] }))
 
   return (
     <aside className="flex flex-col h-full w-64" style={{ background: '#1e293b' }}>
@@ -58,15 +96,8 @@ export default function Sidebar({ courses, loading, selected, onSelect, score }:
         </div>
       </div>
 
-      {/* Course count */}
-      <div className="px-4 pt-3 pb-1">
-        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#475569' }}>
-          {filtered.length} Course{filtered.length !== 1 ? 's' : ''}
-        </p>
-      </div>
-
-      {/* Course list */}
-      <nav className="flex-1 overflow-y-auto pb-2">
+      {/* Course list grouped by institution */}
+      <nav className="flex-1 overflow-y-auto py-1">
         {loading ? (
           <div className="flex justify-center py-10">
             <div
@@ -74,44 +105,71 @@ export default function Sidebar({ courses, loading, selected, onSelect, score }:
               style={{ borderColor: '#334155', borderTopColor: '#04AA6D' }}
             />
           </div>
-        ) : (
-          filtered.map((course, i) => {
-            const active = isActive(course)
-            return (
-              <button
-                key={i}
-                onClick={() => onSelect(course)}
-                className="w-full text-left flex items-center justify-between gap-2 px-4 py-2.5 transition-colors"
-                style={{
-                  borderLeft: active ? '3px solid #04AA6D' : '3px solid transparent',
-                  background: active ? '#0f172a' : 'transparent',
-                  paddingLeft: active ? '13px' : '13px',
-                  color: active ? '#f1f5f9' : '#94a3b8',
-                }}
-                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#263347' }}
-                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-              >
-                <span className="text-sm leading-snug truncate">{course.course_name}</span>
-                <span
-                  className="shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded-sm"
-                  style={{
-                    background: active ? '#04AA6D' : '#1e3a5f',
-                    color: active ? 'white' : '#64748b',
-                    minWidth: '24px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {course.question_count}
-                </span>
-              </button>
-            )
-          })
-        )}
-
-        {!loading && filtered.length === 0 && (
+        ) : sortedGroups.length === 0 ? (
           <p className="text-xs px-4 py-6 text-center" style={{ color: '#475569' }}>
             No courses match &ldquo;{search}&rdquo;
           </p>
+        ) : (
+          sortedGroups.map(([institution, institutionCourses]) => {
+            const isOpen = !collapsed[institution]
+            return (
+              <div key={institution}>
+                {/* Institution header */}
+                <button
+                  onClick={() => toggleGroup(institution)}
+                  className="w-full flex items-center justify-between px-4 py-2 mt-1 transition-colors"
+                  style={{ color: '#64748b' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#94a3b8')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#64748b')}
+                >
+                  <span className="text-xs font-bold uppercase tracking-wider truncate">{institution}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs" style={{ color: '#475569' }}>{institutionCourses.length}</span>
+                    <svg
+                      className="w-3 h-3 transition-transform"
+                      style={{ transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {/* Courses under institution */}
+                {isOpen && institutionCourses.map((course, i) => {
+                  const active = isActive(course)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => onSelect(course)}
+                      className="w-full text-left flex items-center justify-between gap-2 py-2 pr-3 transition-colors"
+                      style={{
+                        paddingLeft: '24px',
+                        borderLeft: active ? '3px solid #04AA6D' : '3px solid transparent',
+                        background: active ? '#0f172a' : 'transparent',
+                        color: active ? '#f1f5f9' : '#94a3b8',
+                      }}
+                      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#263347' }}
+                      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                    >
+                      <span className="text-sm leading-snug truncate">{course.course_name}</span>
+                      <span
+                        className="shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded-sm"
+                        style={{
+                          background: active ? '#04AA6D' : '#1e3a5f',
+                          color: active ? 'white' : '#64748b',
+                          minWidth: '24px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {course.question_count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })
         )}
       </nav>
 
@@ -119,7 +177,7 @@ export default function Sidebar({ courses, loading, selected, onSelect, score }:
       <div style={{ borderTop: '1px solid #334155' }} className="px-4 py-4">
         {answered > 0 ? (
           <>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#475569' }}>Session Score</p>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#475569' }}>Session Score</p>
             <div className="flex items-center gap-4 mb-2">
               <span className="text-sm font-bold" style={{ color: '#4ade80' }}>{score.correct} correct</span>
               <span className="text-sm font-bold" style={{ color: '#f87171' }}>{score.wrong} wrong</span>
@@ -133,9 +191,7 @@ export default function Sidebar({ courses, loading, selected, onSelect, score }:
             <p className="text-xs mt-1.5 text-right" style={{ color: '#64748b' }}>{pct}%</p>
           </>
         ) : (
-          <p className="text-xs" style={{ color: '#475569' }}>
-            Attempt questions to track your score.
-          </p>
+          <p className="text-xs" style={{ color: '#475569' }}>Attempt questions to track your score.</p>
         )}
       </div>
     </aside>
