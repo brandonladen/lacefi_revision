@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 
-// Swap to your fork URL in VITE_NOTES_REPO env var
 const NOTES_REPO = import.meta.env.VITE_NOTES_REPO || 'kennedy467/past-papers'
 const API_URL = `https://api.github.com/repos/${NOTES_REPO}/contents/`
 
@@ -8,7 +7,6 @@ interface GithubFile {
   name: string
   size: number
   download_url: string
-  html_url: string
 }
 
 function formatSize(bytes: number): string {
@@ -16,15 +14,26 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024).toFixed(0)} KB`
 }
 
-function cleanName(filename: string): string {
-  return filename
-    .replace(/\.[^.]+$/, '')          // remove extension
-    .replace(/[-_]/g, ' ')            // dashes/underscores → spaces
-    .replace(/\s+/g, ' ')
-    .trim()
+function toTitleCase(str: string): string {
+  const small = new Set(['a','an','the','and','but','or','for','nor','on','at','to','by','in','of','up'])
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((w, i) => (i === 0 || !small.has(w)) ? w.charAt(0).toUpperCase() + w.slice(1) : w)
+    .join(' ')
 }
 
-// Simple category guess from filename
+function cleanName(filename: string): string {
+  return toTitleCase(
+    filename
+      .replace(/\.[^.]+$/, '')
+      .replace(/[-_]/g, ' ')
+      .replace(/\([\d]+\)/g, '')   // remove trailing (1), (2) etc
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
+}
+
 function getCategory(name: string): string {
   const n = name.toLowerCase()
   if (/nursing|nurs/i.test(n)) return 'Nursing'
@@ -42,18 +51,69 @@ function getCategory(name: string): string {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Nursing':          '#0891b2',
-  'Medicine':         '#dc2626',
-  'Mathematics':      '#7c3aed',
-  'Computer Science': '#2563eb',
-  'Languages':        '#d97706',
+  'Nursing':           '#0891b2',
+  'Medicine':          '#dc2626',
+  'Mathematics':       '#7c3aed',
+  'Computer Science':  '#2563eb',
+  'Languages':         '#d97706',
   'Business & Finance':'#059669',
-  'Sciences':         '#0d9488',
-  'Humanities':       '#b45309',
-  'Engineering':      '#475569',
-  'Actuarial Science':'#9333ea',
-  'Agriculture':      '#65a30d',
-  'General':          '#64748b',
+  'Sciences':          '#0d9488',
+  'Humanities':        '#b45309',
+  'Engineering':       '#475569',
+  'Actuarial Science': '#9333ea',
+  'Agriculture':       '#65a30d',
+  'General':           '#64748b',
+}
+
+interface ViewerProps {
+  file: GithubFile
+  onClose: () => void
+}
+
+function PdfViewer({ file, onClose }: ViewerProps) {
+  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file.download_url)}&embedded=true`
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
+      {/* Viewer header */}
+      <div className="flex items-center gap-3 px-4 py-3 shrink-0 border-b" style={{ borderColor: '#1e293b' }}>
+        <button
+          onClick={onClose}
+          className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+          style={{ color: '#94a3b8' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'white')}
+          onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+        <span className="text-slate-600">|</span>
+        <span className="text-sm font-semibold text-white truncate flex-1">{cleanName(file.name)}</span>
+        <span className="text-xs text-slate-500 shrink-0">{formatSize(file.size)}</span>
+        <a
+          href={file.download_url}
+          download={file.name}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded"
+          style={{ background: '#04AA6D' }}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </a>
+      </div>
+
+      {/* PDF iframe */}
+      <iframe
+        src={viewerUrl}
+        className="flex-1 w-full border-0"
+        title={file.name}
+        allow="fullscreen"
+      />
+    </div>
+  )
 }
 
 export default function NotesPage() {
@@ -62,6 +122,7 @@ export default function NotesPage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [viewing, setViewing] = useState<GithubFile | null>(null)
 
   useEffect(() => {
     fetch(API_URL, { headers: { 'Accept': 'application/vnd.github.v3+json' } })
@@ -82,17 +143,17 @@ export default function NotesPage() {
     return matchSearch && matchCat
   })
 
-  // Build category counts
   const categories = Array.from(new Set(files.map(f => getCategory(f.name)))).sort()
+
+  if (viewing) {
+    return <PdfViewer file={viewing} onClose={() => setViewing(null)} />
+  }
 
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
         <h1 className="text-base font-bold text-slate-800">Study Notes</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          {loading ? 'Loading...' : `${files.length} documents · direct from GitHub`}
-        </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5">
@@ -170,11 +231,8 @@ export default function NotesPage() {
                       key={file.name}
                       className="bg-white border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col"
                     >
-                      {/* Color top bar */}
                       <div className="h-1" style={{ background: color }} />
-
                       <div className="p-4 flex-1 flex flex-col">
-                        {/* Category + ext badge */}
                         <div className="flex items-center justify-between mb-3">
                           <span
                             className="text-xs font-semibold px-2 py-0.5 rounded"
@@ -185,18 +243,14 @@ export default function NotesPage() {
                           <span className="text-xs font-bold text-slate-400">{ext}</span>
                         </div>
 
-                        {/* Filename */}
                         <p className="text-sm font-semibold text-slate-800 leading-snug mb-1 flex-1">
                           {cleanName(file.name)}
                         </p>
                         <p className="text-xs text-slate-400 mb-4">{formatSize(file.size)}</p>
 
-                        {/* Action buttons */}
                         <div className="flex gap-2">
-                          <a
-                            href={file.download_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => setViewing(file)}
                             className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium text-white rounded transition-opacity hover:opacity-90"
                             style={{ background: '#04AA6D' }}
                           >
@@ -205,7 +259,7 @@ export default function NotesPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                             Open
-                          </a>
+                          </button>
                           <a
                             href={file.download_url}
                             download={file.name}
