@@ -1,10 +1,20 @@
+const IMAGE_HASH_RE = /\[image:\s*sha256:[a-f0-9]+\]/gi
+
+function stripImageRefs(text: string): string {
+  return text.replace(IMAGE_HASH_RE, '').replace(/\s{2,}/g, ' ').trim()
+}
+
+export function isRenderableQuestion(raw: string): boolean {
+  return stripImageRefs(raw || '').length > 5
+}
+
 export interface ParsedQuestion {
   stem: string
   options: { letter: string; text: string }[]
 }
 
 export function parseQuestion(raw: string): ParsedQuestion {
-  const text = (raw || '').trim()
+  const text = stripImageRefs((raw || '').trim())
 
   // Try "Options:" separator
   const optSepMatch = text.match(/^([\s\S]*?)(?:\n\s*Options:\s*\n)([\s\S]*)$/i)
@@ -30,7 +40,10 @@ export function parseQuestion(raw: string): ParsedQuestion {
         const clean = m.trim()
         const letterMatch = clean.match(/^([A-Da-d])[\.\)]\s*(.*)$/s)
         if (letterMatch) {
-          options.push({ letter: letterMatch[1].toUpperCase(), text: letterMatch[2].trim() })
+          const optText = letterMatch[2].trim()
+          if (optText.length > 0) {
+            options.push({ letter: letterMatch[1].toUpperCase(), text: optText })
+          }
         }
       }
     }
@@ -40,7 +53,7 @@ export function parseQuestion(raw: string): ParsedQuestion {
 }
 
 export interface ParsedAnswer {
-  answer: string | null      // letter e.g. "A" or full text for essay
+  answer: string | null
   explanation: string | null
 }
 

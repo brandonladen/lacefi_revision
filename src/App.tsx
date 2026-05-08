@@ -8,20 +8,19 @@ import './index.css'
 export default function App() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
 
+  const handleHome = () => setSelectedCourse(null)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header
-        onHome={() => setSelectedCourse(null)}
-        courseName={selectedCourse?.course_name}
-      />
+    <div className="min-h-screen bg-white">
+      <Header onHome={handleHome} courseName={selectedCourse?.course_name} />
       <main>
         {selectedCourse ? (
-          <QuestionsPage course={selectedCourse} />
+          <QuestionsPage course={selectedCourse} onBack={handleHome} />
         ) : (
           <CoursesPage onSelect={setSelectedCourse} />
         )}
       </main>
-      <footer className="mt-16 border-t border-gray-100 py-6 text-center text-xs text-gray-400">
+      <footer className="mt-12 border-t border-gray-200 py-5 text-center text-xs text-gray-400">
         LaceFi Autofill &nbsp;·&nbsp; Past Papers Revision
       </footer>
     </div>
