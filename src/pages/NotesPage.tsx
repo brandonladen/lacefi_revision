@@ -71,6 +71,7 @@ interface ViewerProps {
 }
 
 function PdfViewer({ file, onClose }: ViewerProps) {
+  const [loaded, setLoaded] = useState(false)
   const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(file.download_url)}&embedded=true`
 
   return (
@@ -100,12 +101,28 @@ function PdfViewer({ file, onClose }: ViewerProps) {
         </a>
       </div>
 
+      {/* Loading overlay */}
+      {!loaded && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4" style={{ background: '#0f172a' }}>
+          <p className="text-sm font-medium text-slate-300">{cleanName(file.name)}</p>
+          <div className="w-64 h-1.5 rounded-full overflow-hidden" style={{ background: '#1e293b' }}>
+            <div
+              className="h-full rounded-full animate-pulse"
+              style={{ background: '#04AA6D', width: '60%', animation: 'loading-bar 1.4s ease-in-out infinite' }}
+            />
+          </div>
+          <p className="text-xs" style={{ color: '#475569' }}>Loading document…</p>
+        </div>
+      )}
+
       {/* PDF iframe */}
       <iframe
         src={viewerUrl}
-        className="flex-1 w-full border-0"
+        className="w-full border-0"
+        style={{ flex: loaded ? 1 : 0, height: loaded ? undefined : 0 }}
         title={file.name}
         allow="fullscreen"
+        onLoad={() => setLoaded(true)}
       />
     </div>
   )
