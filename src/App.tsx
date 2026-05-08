@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { api, type Course } from './api/client'
 import Sidebar from './components/Sidebar'
 import QuestionsPage from './pages/QuestionsPage'
+import NotesPage from './pages/NotesPage'
 import './index.css'
 
 export interface SessionScore {
@@ -9,12 +10,15 @@ export interface SessionScore {
   wrong: number
 }
 
+export type ActiveView = 'courses' | 'notes'
+
 export default function App() {
   const [courses, setCourses] = useState<Course[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
   const [selected, setSelected] = useState<Course | null>(null)
   const [score, setScore] = useState<SessionScore>({ correct: 0, wrong: 0 })
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeView, setActiveView] = useState<ActiveView>('courses')
 
   useEffect(() => {
     api.getCourses()
@@ -25,6 +29,7 @@ export default function App() {
   const handleSelect = (course: Course) => {
     setSelected(course)
     setScore({ correct: 0, wrong: 0 })
+    setActiveView('courses')
     setSidebarOpen(false)
   }
 
@@ -34,6 +39,21 @@ export default function App() {
       wrong: s.wrong + (correct ? 0 : 1),
     }))
   }
+
+  const handleViewNotes = () => {
+    setSelected(null)
+    setActiveView('notes')
+    setSidebarOpen(false)
+  }
+
+  const handleViewCourses = () => {
+    setActiveView('courses')
+    setSidebarOpen(false)
+  }
+
+  const mobileTitle = activeView === 'notes'
+    ? 'Study Notes'
+    : selected?.course_name ?? 'Past Papers'
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#f1f5f9' }}>
@@ -57,6 +77,9 @@ export default function App() {
           selected={selected}
           onSelect={handleSelect}
           score={score}
+          activeView={activeView}
+          onViewNotes={handleViewNotes}
+          onViewCourses={handleViewCourses}
         />
       </div>
 
@@ -76,13 +99,13 @@ export default function App() {
             <span style={{ color: '#04AA6D' }}>Lacefi</span>
             <span className="text-slate-800">Autofill</span>
           </span>
-          {selected && (
-            <span className="text-xs text-slate-500 truncate">· {selected.course_name}</span>
-          )}
+          <span className="text-xs text-slate-500 truncate">· {mobileTitle}</span>
         </div>
 
         <main className="flex-1 overflow-y-auto">
-          {selected ? (
+          {activeView === 'notes' ? (
+            <NotesPage />
+          ) : selected ? (
             <QuestionsPage
               course={selected}
               onBack={() => setSelected(null)}
@@ -94,6 +117,7 @@ export default function App() {
               totalQuestions={courses.reduce((s, c) => s + c.question_count, 0)}
               loading={coursesLoading}
               onOpenSidebar={() => setSidebarOpen(true)}
+              onViewNotes={handleViewNotes}
             />
           )}
         </main>
@@ -102,11 +126,12 @@ export default function App() {
   )
 }
 
-function WelcomeScreen({ courseCount, totalQuestions, loading, onOpenSidebar }: {
+function WelcomeScreen({ courseCount, totalQuestions, loading, onOpenSidebar, onViewNotes }: {
   courseCount: number
   totalQuestions: number
   loading: boolean
   onOpenSidebar: () => void
+  onViewNotes: () => void
 }) {
   return (
     <div className="flex items-center justify-center h-full px-4">
@@ -120,20 +145,27 @@ function WelcomeScreen({ courseCount, totalQuestions, loading, onOpenSidebar }: 
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Past Paper Questions</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">LacefiAutofill Revision</h2>
         <p className="text-slate-500 text-sm mb-6">
           {loading
-            ? 'Loading courses...'
-            : `${totalQuestions.toLocaleString()} questions across ${courseCount} courses. Pick a course from the left panel to start revising.`}
+            ? 'Loading...'
+            : `${totalQuestions.toLocaleString()} past paper questions across ${courseCount} courses.`}
         </p>
-        {/* Mobile CTA */}
-        <button
-          onClick={onOpenSidebar}
-          className="md:hidden px-5 py-2.5 text-sm text-white font-medium rounded"
-          style={{ background: '#04AA6D' }}
-        >
-          Browse Courses
-        </button>
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={onOpenSidebar}
+            className="md:hidden px-4 py-2 text-sm text-white font-medium rounded"
+            style={{ background: '#04AA6D' }}
+          >
+            Browse Courses
+          </button>
+          <button
+            onClick={onViewNotes}
+            className="px-4 py-2 text-sm font-medium border border-slate-300 text-slate-600 rounded hover:bg-slate-50"
+          >
+            Study Notes
+          </button>
+        </div>
       </div>
     </div>
   )

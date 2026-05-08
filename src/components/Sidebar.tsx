@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Course } from '../api/client'
-import type { SessionScore } from '../App'
+import type { SessionScore, ActiveView } from '../App'
 
 interface Props {
   courses: Course[]
@@ -8,6 +8,9 @@ interface Props {
   selected: Course | null
   onSelect: (course: Course) => void
   score: SessionScore
+  activeView: ActiveView
+  onViewNotes: () => void
+  onViewCourses: () => void
 }
 
 function institutionName(domain: string | null): string {
@@ -34,7 +37,7 @@ function institutionName(domain: string | null): string {
   return domain
 }
 
-export default function Sidebar({ courses, loading, selected, onSelect, score }: Props) {
+export default function Sidebar({ courses, loading, selected, onSelect, score, activeView, onViewNotes, onViewCourses }: Props) {
   const [search, setSearch] = useState('')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
@@ -70,6 +73,30 @@ export default function Sidebar({ courses, loading, selected, onSelect, score }:
           <span className="text-white">Autofill</span>
         </div>
         <p className="text-xs mt-1" style={{ color: '#64748b' }}>Past Paper Revision</p>
+      </div>
+
+      {/* Nav tabs */}
+      <div className="flex" style={{ borderBottom: '1px solid #334155' }}>
+        <button
+          onClick={onViewCourses}
+          className="flex-1 py-2.5 text-xs font-semibold transition-colors"
+          style={{
+            color: activeView === 'courses' ? '#04AA6D' : '#64748b',
+            borderBottom: activeView === 'courses' ? '2px solid #04AA6D' : '2px solid transparent',
+          }}
+        >
+          Past Papers
+        </button>
+        <button
+          onClick={onViewNotes}
+          className="flex-1 py-2.5 text-xs font-semibold transition-colors"
+          style={{
+            color: activeView === 'notes' ? '#04AA6D' : '#64748b',
+            borderBottom: activeView === 'notes' ? '2px solid #04AA6D' : '2px solid transparent',
+          }}
+        >
+          Study Notes
+        </button>
       </div>
 
       {/* Search */}
